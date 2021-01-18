@@ -1,0 +1,30 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none
+}
+
+li {
+    list-style: none;
+}
+
+body {
+    height: 1200px;
+}
+
+/*header开始*/
+.container {
+    width: 1200px;
+    margin: 0 auto;
+}
+header {
+    height: 50px;
+    background: #cccccc;
+    display: flex;
+    padding: 0 20px;
+    justify-content: space-between;
+    align-items: center;
+}
