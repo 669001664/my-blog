@@ -11,29 +11,93 @@ var pool = mysql.createPool({
 });
 
 //首页
-router.get("/", async (ctx, next) => {
-    await ctx.render("index");
-})
 //登录
-router.get("/login", async (ctx, next) => {
-    await ctx.render("login");
-})
 
-function getUserData(username, password) {
+// function getBlogData(username, password) {
+//     return new Promise((resolve, reject) => {
+//         pool.getConnection(function (err, connection) {
+//             if (err) {
+//                 // not connected!
+//                 reject(err);
+//             } else {
+//                 connection.query(
+//                     `SELECT * FROM t_blog`,
+//                     function (error, results) {
+//                         connection.release(); //释放连接，放回pool中
+//                         if (error) {
+//                             reject(err);
+//                         } else {
+//                             resolve(results);
+//                         }
+//                     }
+//                 );
+//             }
+//         });
+//     });
+// }
+
+// function getUserData(username, password) {
+//     return new Promise((resolve, reject) => {
+//         pool.getConnection(function (err, connection) {
+//             if (err) {
+//                 reject(err)
+//             } else {
+//                 connection.query(
+//                     //   "SELECT * FROM t_user where username='"+username+"' and password='"+password+"'",
+//                     `SELECT * FROM t_user where username='${username}' and password='${password}'`,
+//                     function (error, results) {
+//                         connection.release(); //释放连接，放回pool中
+//                         if (error) {
+//                             reject(err);
+//                         } else {
+//                             resolve(results)
+//                         }
+//                     }
+//                 );
+//             }
+//         });
+//     });
+// }
+
+// function saveUser(user) {
+//     return new Promise((resolve, reject) => {
+//         pool.getConnection(function (err, connection) {
+//             if (err) {
+//                 // not connected!
+//                 reject(err);
+//             } else {
+//                 connection.query(
+//                     `insert into t_user set ?`,
+//                     user,
+//                     function (error, results) {
+//                         connection.release(); //释放连接，放回pool中
+//                         if (error) {
+//                             reject(err);
+//                         } else {
+//                             resolve(results);
+//                         }
+//                     }
+//                 );
+//             }
+//         });
+//     });
+// }
+
+function getData(sql, user) {
     return new Promise((resolve, reject) => {
         pool.getConnection(function (err, connection) {
             if (err) {
-                reject(err)
+                // not connected!
+                reject(err);
             } else {
                 connection.query(
-                    //   "SELECT * FROM t_user where username='"+username+"' and password='"+password+"'",
-                    `SELECT * FROM t_user where username='${username}' and password='${password}'`,
+                    sql, user,
                     function (error, results) {
                         connection.release(); //释放连接，放回pool中
                         if (error) {
                             reject(err);
                         } else {
-                            resolve(results)
+                            resolve(results);
                         }
                     }
                 );
@@ -41,16 +105,58 @@ function getUserData(username, password) {
         });
     });
 }
+// router.get("/", async (ctx) => {
+//     // 查询所有文章数据
+//     let results = await getBlogData();
+//     await ctx.render("index", {
+//         blogs: results
+//     });
 
-router.post("/login", async (ctx, next) => {
+// });
+router.get("/login", async (ctx, next) => {
+    await ctx.render("login");
+})
+
+router.post("/login", async (ctx) => {
     let { username, password } = ctx.request.body
-    let results = await getUserData(username, password);
-    if (results.legth > 0) {
-     await ctx.render("index")
+    let sql = `SELECT * FROM t_user where username='${username}' and password='${password}'`
+    // let results = await getUserData(username, password);
+    let results = await getData(sql)
+    if (results.length > 0) {
+        let sql = `SELECT * FROM t_blog`
+        // let results = await getBlogData();
+        let results = await getData(sql)
+        await ctx.render("index", {
+            blogs: results
+        });
     } else {
         await ctx.render("error", {
             message: "登陆失败，用户名或密码错误"
         })
+    }
+})
+
+router.get("/regist", async (ctx) => {
+    await ctx.render("regist");
+});
+
+router.post("/regist", async (ctx, next) => {
+    let { username, password, nickname } = ctx.request.body
+    if (username.trim().length == 0) {
+        await ctx.render("error", {
+            message: "用户名不能为空"
+        })
+    } else {
+        let sql = `insert into t_user set ?`
+        // let results = await saveUser({ username, password, nickname });
+        let results = await getData(sql, { username, password, nickname })
+        if (results.insertId) {
+            await ctx.render("login")
+        } else {
+            await ctx.render("error", {
+                message: "注册失败"
+            })
+        }
     }
 })
 
