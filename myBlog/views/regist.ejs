@@ -9,17 +9,12 @@
 </head>
 <body>
    <div class="container">
-       <header>
-           <div class="title">MyBlog</div>  
-            <div class="login-box">
-           <a href="#">登录</a> / <a href="#">注册</a>
-       </div>
-       </header>
+       <%- include('header') %>
            <div class="login-form">
                <h3>用户注册</h3>
                <form action="/regist" method="POST">
                    <p>
-                       用户名: <input type="text" name="username">
+                       用户名: <input type="text" id="username" name="username"><span id="info"></span>
                    </p>
                    <p>
                        密  码 : <input type="password" name="password" id="">
@@ -33,5 +28,25 @@
                </form>
            </div>
    </div>
+   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+   <script>
+       let iptUsername = document.getElementById('username');
+       let spanInfo = document.getElementById('info');
+       iptUsername.onblur = function () {
+           axios.get('/checkUser', {
+               params: {
+                   username: this.value
+               }
+           }).then(function (response) {
+               if(response.data == "success"){
+                   spanInfo.innerHTML = 'OK'
+               }else{
+                   spanInfo.innerHTML = '用户名已存在!';
+               }
+           }).catch(function (error) {
+               console.log(error);
+           });
+       };
+   </script>
 </body>
 </html>
